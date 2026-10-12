@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.stock.mapper.StockRecordMapper">
+
+    <resultMap id="recordMap" type="com.beefarm.stock.entity.StockRecord">
+        <id property="id" column="id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="unit" column="unit"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="bizType" column="biz_type"/>
+        <result property="quantity" column="quantity"/>
+        <result property="stockAfter" column="stock_after"/>
+        <result property="operator" column="operator"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="auditorName" column="auditor_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectRecordPage" resultMap="recordMap">
+        SELECT r.*, i.item_name, i.unit,
+               CASE
+                   WHEN r.remark LIKE '销售出库%' THEN '孙销售'
+                   ELSE COALESCE(u.real_name, r.operator)
+               END AS operator_name,
+               COALESCE(ou.real_name, pu.real_name, '张场长') AS auditor_name
+        FROM biz_stock_record r
+                 LEFT JOIN biz_inventory i ON i.id = r.item_id AND i.deleted = 0
+                 LEFT JOIN sys_user u ON u.username = r.operator
+                 LEFT JOIN biz_outbound bo ON r.remark = CONCAT('销售出库', bo.outbound_no)
+                 LEFT JOIN sys_user ou ON ou.username = bo.update_by
+                 LEFT JOIN biz_purchase bp ON r.remark = CONCAT('采购入库', bp.purchase_no)
+                 LEFT JOIN sys_user pu ON pu.username = bp.update_by
+        WHERE 1 = 1
+        <if test="record.itemId != null">
+            AND r.item_id = #{record.itemId}
+        </if>
+        <if test="record.bizType != null">
+            AND r.biz_type = #{record.bizType}
+        </if>
+        ORDER BY r.create_time DESC, r.id DESC
+    </select>
+</mapper>

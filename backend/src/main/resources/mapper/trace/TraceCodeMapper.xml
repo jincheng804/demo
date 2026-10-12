@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.trace.mapper.TraceCodeMapper">
+
+    <resultMap id="traceMap" type="com.beefarm.trace.entity.TraceCode">
+        <id property="id" column="id"/>
+        <result property="traceCode" column="trace_code"/>
+        <result property="productBatchId" column="product_batch_id"/>
+        <result property="productBatchNo" column="product_batch_no"/>
+        <result property="productName" column="product_name"/>
+        <result property="spec" column="spec"/>
+        <result property="qrUrl" column="qr_url"/>
+        <result property="scanCount" column="scan_count"/>
+        <result property="lastScanTime" column="last_scan_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectTracePage" resultMap="traceMap">
+        SELECT t.*, p.product_batch_no, p.product_name, p.spec
+        FROM biz_trace_code t
+                 LEFT JOIN biz_product_batch p ON p.id = t.product_batch_id AND p.deleted = 0
+        WHERE t.deleted = 0
+        <if test="trace.traceCode != null and trace.traceCode != ''">
+            AND t.trace_code LIKE CONCAT('%', #{trace.traceCode}, '%')
+        </if>
+        <if test="trace.productBatchId != null">
+            AND t.product_batch_id = #{trace.productBatchId}
+        </if>
+        ORDER BY t.create_time DESC, t.id DESC
+    </select>
+</mapper>

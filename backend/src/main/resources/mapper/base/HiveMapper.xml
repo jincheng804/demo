@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.base.mapper.HiveMapper">
+
+    <resultMap id="hiveMap" type="com.beefarm.base.entity.Hive">
+        <id property="id" column="id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="apiaryId" column="apiary_id"/>
+        <result property="apiaryName" column="apiary_name"/>
+        <result property="boxType" column="box_type"/>
+        <result property="location" column="location"/>
+        <result property="entryDate" column="entry_date"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectHivePage" resultMap="hiveMap">
+        SELECT h.*, a.apiary_name
+        FROM biz_hive h
+                 LEFT JOIN biz_apiary a ON a.id = h.apiary_id AND a.deleted = 0
+        WHERE h.deleted = 0
+        <if test="hive.hiveCode != null and hive.hiveCode != ''">
+            AND h.hive_code LIKE CONCAT('%', #{hive.hiveCode}, '%')
+        </if>
+        <if test="hive.apiaryId != null">
+            AND h.apiary_id = #{hive.apiaryId}
+        </if>
+        <if test="hive.boxType != null and hive.boxType != ''">
+            AND h.box_type = #{hive.boxType}
+        </if>
+        <if test="hive.status != null">
+            AND h.status = #{hive.status}
+        </if>
+        ORDER BY h.hive_code
+    </select>
+</mapper>

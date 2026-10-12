@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.sale.mapper.OutboundItemMapper">
+
+    <resultMap id="itemMap" type="com.beefarm.sale.entity.OutboundItem">
+        <id property="id" column="id"/>
+        <result property="outboundId" column="outbound_id"/>
+        <result property="productBatchId" column="product_batch_id"/>
+        <result property="productBatchNo" column="product_batch_no"/>
+        <result property="productName" column="product_name"/>
+        <result property="spec" column="spec"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+    </resultMap>
+
+    <select id="selectItemsByOutboundId" resultMap="itemMap">
+        SELECT oi.*, p.product_batch_no, p.product_name, p.spec
+        FROM biz_outbound_item oi
+                 LEFT JOIN biz_product_batch p ON p.id = oi.product_batch_id AND p.deleted = 0
+        WHERE oi.outbound_id = #{outboundId}
+    </select>
+
+    <delete id="deleteByOutboundId">
+        DELETE FROM biz_outbound_item WHERE outbound_id = #{outboundId}
+    </delete>
+</mapper>

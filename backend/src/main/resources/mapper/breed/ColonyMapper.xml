@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.breed.mapper.ColonyMapper">
+
+    <resultMap id="colonyMap" type="com.beefarm.breed.entity.Colony">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="recordDate" column="record_date"/>
+        <result property="colonyStrength" column="colony_strength"/>
+        <result property="broodFrame" column="brood_frame"/>
+        <result property="honeyFrame" column="honey_frame"/>
+        <result property="beeCount" column="bee_count"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectColonyPage" resultMap="colonyMap">
+        SELECT c.*, h.hive_code
+        FROM biz_colony c
+                 LEFT JOIN biz_hive h ON h.id = c.hive_id AND h.deleted = 0
+        WHERE c.deleted = 0
+        <if test="colony.hiveId != null">
+            AND c.hive_id = #{colony.hiveId}
+        </if>
+        <if test="colony.recordDate != null">
+            AND c.record_date = #{colony.recordDate}
+        </if>
+        ORDER BY c.record_date DESC, c.id DESC
+    </select>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.breed.mapper.FeedingMapper">
+
+    <resultMap id="feedingMap" type="com.beefarm.breed.entity.Feeding">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="feedDate" column="feed_date"/>
+        <result property="feedType" column="feed_type"/>
+        <result property="amount" column="amount"/>
+        <result property="unit" column="unit"/>
+        <result property="operator" column="operator"/>
+        <result property="remark" column="remark"/>
+        <result property="hiveCode" column="hive_code"/>
+    </resultMap>
+
+    <select id="selectFeedingPage" resultMap="feedingMap">
+        SELECT f.*, h.hive_code
+        FROM biz_feeding f
+                 LEFT JOIN biz_hive h ON h.id = f.hive_id AND h.deleted = 0
+        WHERE f.deleted = 0
+        <if test="query != null and query.hiveId != null">
+            AND f.hive_id = #{query.hiveId}
+        </if>
+        <if test="query != null and query.feedType != null and query.feedType != ''">
+            AND f.feed_type = #{query.feedType}
+        </if>
+        <if test="query != null and query.operator != null and query.operator != ''">
+            AND f.operator LIKE CONCAT('%', #{query.operator}, '%')
+        </if>
+        <if test="beginTime != null">
+            AND f.feed_date &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND f.feed_date &lt;= #{endTime}
+        </if>
+        ORDER BY f.feed_date DESC, f.id DESC
+    </select>
+</mapper>

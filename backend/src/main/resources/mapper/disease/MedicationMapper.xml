@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.disease.mapper.MedicationMapper">
+
+    <resultMap id="medMap" type="com.beefarm.disease.entity.Medication">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="diseaseId" column="disease_id"/>
+        <result property="drugName" column="drug_name"/>
+        <result property="dose" column="dose"/>
+        <result property="useDate" column="use_date"/>
+        <result property="withdrawalDays" column="withdrawal_days"/>
+        <result property="safeDate" column="safe_date"/>
+        <result property="operator" column="operator"/>
+    </resultMap>
+
+    <select id="selectMedicationPage" resultMap="medMap">
+        SELECT m.*, h.hive_code
+        FROM biz_medication m
+                 LEFT JOIN biz_hive h ON h.id = m.hive_id AND h.deleted = 0
+        WHERE m.deleted = 0
+        <if test="medication.hiveId != null">
+            AND m.hive_id = #{medication.hiveId}
+        </if>
+        <if test="medication.drugName != null and medication.drugName != ''">
+            AND m.drug_name LIKE CONCAT('%', #{medication.drugName}, '%')
+        </if>
+        ORDER BY m.use_date DESC, m.id DESC
+    </select>
+</mapper>

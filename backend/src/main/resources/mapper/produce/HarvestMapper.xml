@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.produce.mapper.HarvestMapper">
+
+    <resultMap id="harvestMap" type="com.beefarm.produce.entity.Harvest">
+        <id property="id" column="id"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="sourceId" column="source_id"/>
+        <result property="sourceName" column="source_name"/>
+        <result property="harvestDate" column="harvest_date"/>
+        <result property="honeyType" column="honey_type"/>
+        <result property="weight" column="weight"/>
+        <result property="moisture" column="moisture"/>
+        <result property="operator" column="operator"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="selectHarvestPage" resultMap="harvestMap">
+        SELECT hs.*, h.hive_code, s.source_name
+        FROM biz_harvest hs
+                 LEFT JOIN biz_hive h ON h.id = hs.hive_id AND h.deleted = 0
+                 LEFT JOIN biz_nectar_source s ON s.id = hs.source_id AND s.deleted = 0
+        WHERE hs.deleted = 0
+        <if test="harvest.batchNo != null and harvest.batchNo != ''">
+            AND hs.batch_no LIKE CONCAT('%', #{harvest.batchNo}, '%')
+        </if>
+        <if test="harvest.hiveId != null">
+            AND hs.hive_id = #{harvest.hiveId}
+        </if>
+        <if test="harvest.honeyType != null and harvest.honeyType != ''">
+            AND hs.honey_type = #{harvest.honeyType}
+        </if>
+        <if test="harvest.status != null">
+            AND hs.status = #{harvest.status}
+        </if>
+        ORDER BY hs.harvest_date DESC, hs.id DESC
+    </select>
+</mapper>

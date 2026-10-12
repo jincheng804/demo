@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.breed.mapper.BreedingMapper">
+
+    <resultMap id="breedingMap" type="com.beefarm.breed.entity.Breeding">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="breedType" column="breed_type"/>
+        <result property="breedDate" column="breed_date"/>
+        <result property="sourceHiveId" column="source_hive_id"/>
+        <result property="targetHiveId" column="target_hive_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="remark" column="remark"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="sourceHiveCode" column="source_hive_code"/>
+        <result property="targetHiveCode" column="target_hive_code"/>
+    </resultMap>
+
+    <select id="selectBreedingPage" resultMap="breedingMap">
+        SELECT b.*,
+               h.hive_code   AS hive_code,
+               sh.hive_code  AS source_hive_code,
+               th.hive_code  AS target_hive_code
+        FROM biz_breeding b
+                 LEFT JOIN biz_hive h  ON h.id  = b.hive_id       AND h.deleted = 0
+                 LEFT JOIN biz_hive sh ON sh.id = b.source_hive_id AND sh.deleted = 0
+                 LEFT JOIN biz_hive th ON th.id = b.target_hive_id AND th.deleted = 0
+        WHERE b.deleted = 0
+        <if test="query != null and query.hiveId != null">
+            AND b.hive_id = #{query.hiveId}
+        </if>
+        <if test="query != null and query.breedType != null and query.breedType != ''">
+            AND b.breed_type = #{query.breedType}
+        </if>
+        <if test="beginTime != null">
+            AND b.breed_date &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND b.breed_date &lt;= #{endTime}
+        </if>
+        ORDER BY b.breed_date DESC, b.id DESC
+    </select>
+</mapper>

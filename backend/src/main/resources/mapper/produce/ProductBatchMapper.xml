@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.produce.mapper.ProductBatchMapper">
+
+    <resultMap id="productMap" type="com.beefarm.produce.entity.ProductBatch">
+        <id property="id" column="id"/>
+        <result property="productBatchNo" column="product_batch_no"/>
+        <result property="harvestId" column="harvest_id"/>
+        <result property="harvestBatchNo" column="harvest_batch_no"/>
+        <result property="productName" column="product_name"/>
+        <result property="spec" column="spec"/>
+        <result property="bottleCount" column="bottle_count"/>
+        <result property="produceDate" column="produce_date"/>
+        <result property="shelfLife" column="shelf_life"/>
+        <result property="qcStatus" column="qc_status"/>
+        <result property="status" column="status"/>
+        <result property="availableBottles" column="available_bottles"/>
+        <result property="price" column="price"/>
+        <result property="honeyType" column="honey_type"/>
+    </resultMap>
+
+    <select id="selectProductPage" resultMap="productMap">
+        SELECT p.*, hs.batch_no AS harvest_batch_no, hs.honey_type,
+               (SELECT COALESCE(SUM(CASE WHEN sr.biz_type IN (2,4) THEN -ABS(sr.quantity) ELSE ABS(sr.quantity) END),0) FROM biz_stock_record sr WHERE sr.batch_id=p.id) AS available_bottles
+        FROM biz_product_batch p
+                 LEFT JOIN biz_harvest hs ON hs.id = p.harvest_id AND hs.deleted = 0
+        WHERE p.deleted = 0
+        <if test="product.productBatchNo != null and product.productBatchNo != ''">
+            AND p.product_batch_no LIKE CONCAT('%', #{product.productBatchNo}, '%')
+        </if>
+        <if test="product.harvestId != null">
+            AND p.harvest_id = #{product.harvestId}
+        </if>
+        <if test="product.qcStatus != null">
+            AND p.qc_status = #{product.qcStatus}
+        </if>
+        <if test="product.status != null">
+            AND p.status = #{product.status}
+        </if>
+        ORDER BY p.produce_date DESC, p.id DESC
+    </select>
+</mapper>

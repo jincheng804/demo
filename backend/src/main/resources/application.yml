@@ -1,0 +1,53 @@
+server:
+  port: ${BEE_SERVER_PORT:8090}
+  address: ${BEE_SERVER_ADDRESS:127.0.0.1}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: bee-farm-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${BEE_DB_URL:jdbc:mysql://127.0.0.1:3306/bee_farm?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${BEE_DB_USERNAME:bee}
+    password: ${BEE_DB_PASSWORD:}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.beefarm.**.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 自定义配置
+bee:
+  cors-origins: ${BEE_CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+  jwt:
+    # HS512 密钥(>=64字节)
+    secret: ${BEE_JWT_SECRET:}
+    # 令牌有效期(分钟) 24h
+    expire: 1440
+    header: Authorization
+  # 溯源公开页基础地址(前端域名)
+  trace:
+    base-url: ${BEE_TRACE_BASE_URL:http://localhost:5173}
+
+springdoc:
+  swagger-ui:
+    path: /doc.html
+
+logging:
+  level:
+    com.beefarm: info
+    org.mybatis: warn

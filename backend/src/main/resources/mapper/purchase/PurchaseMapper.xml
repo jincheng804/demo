@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.purchase.mapper.PurchaseMapper">
+
+    <resultMap id="purchaseMap" type="com.beefarm.purchase.entity.Purchase">
+        <id property="id" column="id"/>
+        <result property="purchaseNo" column="purchase_no"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="purchaseDate" column="purchase_date"/>
+        <result property="totalQty" column="total_qty"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="status" column="status"/>
+        <result property="operator" column="operator"/>
+        <result property="remark" column="remark"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="warehouseName" column="warehouse_name"/>
+    </resultMap>
+
+    <select id="selectPurchasePage" resultMap="purchaseMap">
+        SELECT p.*,
+               s.supplier_name AS supplier_name,
+               w.wh_name       AS warehouse_name
+        FROM biz_purchase p
+                 LEFT JOIN biz_supplier s ON s.id = p.supplier_id AND s.deleted = 0
+                 LEFT JOIN biz_warehouse w ON w.id = p.warehouse_id AND w.deleted = 0
+        WHERE p.deleted = 0
+        <if test="query != null and query.purchaseNo != null and query.purchaseNo != ''">
+            AND p.purchase_no LIKE CONCAT('%', #{query.purchaseNo}, '%')
+        </if>
+        <if test="query != null and query.supplierId != null">
+            AND p.supplier_id = #{query.supplierId}
+        </if>
+        <if test="query != null and query.warehouseId != null">
+            AND p.warehouse_id = #{query.warehouseId}
+        </if>
+        <if test="query != null and query.status != null">
+            AND p.status = #{query.status}
+        </if>
+        <if test="beginTime != null">
+            AND p.purchase_date &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND p.purchase_date &lt;= #{endTime}
+        </if>
+        ORDER BY p.purchase_date DESC, p.id DESC
+    </select>
+</mapper>

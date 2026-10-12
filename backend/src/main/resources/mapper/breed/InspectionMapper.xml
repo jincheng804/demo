@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.breed.mapper.InspectionMapper">
+
+    <resultMap id="inspectionMap" type="com.beefarm.breed.entity.Inspection">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="inspectDate" column="inspect_date"/>
+        <result property="temperature" column="temperature"/>
+        <result property="humidity" column="humidity"/>
+        <result property="colonyPotential" column="colony_potential"/>
+        <result property="queenStatus" column="queen_status"/>
+        <result property="feedStatus" column="feed_status"/>
+        <result property="abnormal" column="abnormal"/>
+        <result property="inspector" column="inspector"/>
+        <result property="remark" column="remark"/>
+        <result property="hiveCode" column="hive_code"/>
+    </resultMap>
+
+    <select id="selectInspectionPage" resultMap="inspectionMap">
+        SELECT i.*, h.hive_code
+        FROM biz_inspection i
+                 LEFT JOIN biz_hive h ON h.id = i.hive_id AND h.deleted = 0
+        WHERE i.deleted = 0
+        <if test="query != null and query.hiveId != null">
+            AND i.hive_id = #{query.hiveId}
+        </if>
+        <if test="query != null and query.inspector != null and query.inspector != ''">
+            AND i.inspector LIKE CONCAT('%', #{query.inspector}, '%')
+        </if>
+        <if test="query != null and query.queenStatus != null and query.queenStatus != ''">
+            AND i.queen_status = #{query.queenStatus}
+        </if>
+        <if test="query != null and query.colonyPotential != null and query.colonyPotential != ''">
+            AND i.colony_potential = #{query.colonyPotential}
+        </if>
+        <if test="beginTime != null">
+            AND i.inspect_date &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND i.inspect_date &lt;= #{endTime}
+        </if>
+        ORDER BY i.inspect_date DESC, i.id DESC
+    </select>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.purchase.mapper.PurchaseItemMapper">
+
+    <resultMap id="itemMap" type="com.beefarm.purchase.entity.PurchaseItem">
+        <id property="id" column="id"/>
+        <result property="purchaseId" column="purchase_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="spec" column="spec"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unit" column="unit"/>
+        <result property="price" column="price"/>
+        <result property="amount" column="amount"/>
+    </resultMap>
+
+    <select id="selectItemsByPurchaseId" resultMap="itemMap">
+        SELECT * FROM biz_purchase_item
+        WHERE purchase_id = #{purchaseId}
+        ORDER BY id
+    </select>
+
+    <delete id="deleteByPurchaseId">
+        DELETE FROM biz_purchase_item WHERE purchase_id = #{purchaseId}
+    </delete>
+</mapper>

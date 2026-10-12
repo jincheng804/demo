@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.breed.mapper.QueenMapper">
+
+    <resultMap id="queenMap" type="com.beefarm.breed.entity.Queen">
+        <id property="id" column="id"/>
+        <result property="queenCode" column="queen_code"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="breed" column="breed"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectQueenPage" resultMap="queenMap">
+        SELECT q.*, h.hive_code
+        FROM biz_queen q
+                 LEFT JOIN biz_hive h ON h.id = q.hive_id AND h.deleted = 0
+        WHERE q.deleted = 0
+        <if test="queen.queenCode != null and queen.queenCode != ''">
+            AND q.queen_code LIKE CONCAT('%', #{queen.queenCode}, '%')
+        </if>
+        <if test="queen.hiveId != null">
+            AND q.hive_id = #{queen.hiveId}
+        </if>
+        <if test="queen.breed != null and queen.breed != ''">
+            AND q.breed = #{queen.breed}
+        </if>
+        <if test="queen.status != null">
+            AND q.status = #{queen.status}
+        </if>
+        ORDER BY q.queen_code
+    </select>
+</mapper>

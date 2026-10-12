@@ -1,0 +1,567 @@
+CREATE TABLE `biz_apiary` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `apiary_name` varchar(100) NOT NULL,
+  `location` varchar(200) DEFAULT NULL,
+  `longitude` decimal(10,6) DEFAULT NULL,
+  `latitude` decimal(10,6) DEFAULT NULL,
+  `manager` varchar(50) DEFAULT NULL,
+  `dept_id` bigint DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_breeding` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint DEFAULT NULL,
+  `breed_type` varchar(20) DEFAULT NULL,
+  `breed_date` date NOT NULL,
+  `source_hive_id` bigint DEFAULT NULL,
+  `target_hive_id` bigint DEFAULT NULL,
+  `quantity` int DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_breed_hive` (`hive_id`)
+);
+CREATE TABLE `biz_colony` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint NOT NULL,
+  `record_date` date NOT NULL,
+  `colony_strength` int DEFAULT NULL,
+  `brood_frame` int DEFAULT NULL,
+  `honey_frame` int DEFAULT NULL,
+  `bee_count` varchar(20) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_colony_hive` (`hive_id`)
+);
+CREATE TABLE `biz_customer` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `customer_name` varchar(100) NOT NULL,
+  `contact` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_disease` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint NOT NULL,
+  `disease_type` varchar(50) DEFAULT NULL,
+  `disease_date` date NOT NULL,
+  `level` tinyint DEFAULT '1',
+  `handle_status` tinyint DEFAULT '0',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_disease_hive` (`hive_id`)
+);
+CREATE TABLE `biz_expense` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `apiary_id` bigint DEFAULT NULL,
+  `expense_date` date NOT NULL,
+  `expense_type` varchar(20) DEFAULT NULL,
+  `amount` decimal(12,2) DEFAULT '0.00',
+  `summary` varchar(255) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_expense_date` (`expense_date`),
+  KEY `idx_expense_type` (`expense_type`)
+);
+CREATE TABLE `biz_feeding` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint NOT NULL,
+  `feed_date` date NOT NULL,
+  `feed_type` varchar(30) DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `unit` varchar(20) DEFAULT NULL,
+  `operator` varchar(50) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_feed_hive` (`hive_id`)
+);
+CREATE TABLE `biz_harvest` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `batch_no` varchar(40) NOT NULL,
+  `hive_id` bigint NOT NULL,
+  `source_id` bigint DEFAULT NULL,
+  `harvest_date` date NOT NULL,
+  `honey_type` varchar(50) DEFAULT NULL,
+  `weight` decimal(10,2) DEFAULT '0.00',
+  `moisture` decimal(5,2) DEFAULT NULL,
+  `operator` varchar(50) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_harvest_batch` (`batch_no`),
+  KEY `idx_harvest_hive` (`hive_id`)
+);
+CREATE TABLE `biz_hive` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_code` varchar(50) NOT NULL,
+  `apiary_id` bigint DEFAULT NULL,
+  `box_type` varchar(30) DEFAULT NULL,
+  `location` varchar(200) DEFAULT NULL,
+  `entry_date` date DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_hive_code` (`hive_code`)
+);
+CREATE TABLE `biz_inspection` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint NOT NULL,
+  `inspect_date` date NOT NULL,
+  `temperature` decimal(5,2) DEFAULT NULL,
+  `humidity` decimal(5,2) DEFAULT NULL,
+  `colony_potential` varchar(10) DEFAULT NULL,
+  `queen_status` varchar(20) DEFAULT NULL,
+  `feed_status` varchar(100) DEFAULT NULL,
+  `abnormal` varchar(255) DEFAULT NULL,
+  `inspector` varchar(50) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_insp_hive` (`hive_id`),
+  KEY `idx_insp_date` (`inspect_date`)
+);
+CREATE TABLE `biz_inventory` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `warehouse_id` bigint DEFAULT NULL,
+  `item_type` tinyint NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `spec` varchar(50) DEFAULT NULL,
+  `unit` varchar(20) DEFAULT NULL,
+  `stock` decimal(10,2) DEFAULT '0.00',
+  `warn_stock` decimal(10,2) DEFAULT '0.00',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_inv_warehouse` (`warehouse_id`)
+);
+CREATE TABLE `biz_medication` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `hive_id` bigint NOT NULL,
+  `disease_id` bigint DEFAULT NULL,
+  `drug_name` varchar(100) NOT NULL,
+  `dose` varchar(100) DEFAULT NULL,
+  `use_date` date NOT NULL,
+  `withdrawal_days` int DEFAULT '0',
+  `safe_date` date DEFAULT NULL,
+  `operator` varchar(50) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_med_hive` (`hive_id`)
+);
+CREATE TABLE `biz_nectar_source` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `source_name` varchar(100) NOT NULL,
+  `plant` varchar(100) DEFAULT NULL,
+  `location` varchar(200) DEFAULT NULL,
+  `longitude` decimal(10,6) DEFAULT NULL,
+  `latitude` decimal(10,6) DEFAULT NULL,
+  `bloom_start` date DEFAULT NULL,
+  `bloom_end` date DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_outbound` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `outbound_no` varchar(40) NOT NULL,
+  `customer_id` bigint DEFAULT NULL,
+  `total_qty` int DEFAULT '0',
+  `total_amount` decimal(12,2) DEFAULT '0.00',
+  `outbound_date` date DEFAULT NULL,
+  `status` tinyint DEFAULT '0',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_outbound_no` (`outbound_no`)
+);
+CREATE TABLE `biz_outbound_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `outbound_id` bigint NOT NULL,
+  `product_batch_id` bigint NOT NULL,
+  `quantity` int DEFAULT '0',
+  `price` decimal(10,2) DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  KEY `idx_oi_outbound` (`outbound_id`)
+);
+CREATE TABLE `biz_product_batch` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `product_batch_no` varchar(40) NOT NULL,
+  `harvest_id` bigint NOT NULL,
+  `product_name` varchar(100) DEFAULT NULL,
+  `spec` varchar(50) DEFAULT NULL,
+  `bottle_count` int DEFAULT '0',
+  `price` decimal(10,2) DEFAULT '0.00',
+  `produce_date` date DEFAULT NULL,
+  `shelf_life` int DEFAULT '24',
+  `qc_status` tinyint DEFAULT '0',
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_batch` (`product_batch_no`),
+  KEY `idx_pb_harvest` (`harvest_id`)
+);
+CREATE TABLE `biz_purchase` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `purchase_no` varchar(40) NOT NULL,
+  `supplier_id` bigint DEFAULT NULL,
+  `warehouse_id` bigint DEFAULT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `total_qty` decimal(12,2) DEFAULT '0',
+  `total_amount` decimal(12,2) DEFAULT '0.00',
+  `status` tinyint DEFAULT '0',
+  `operator` varchar(50) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_purchase_no` (`purchase_no`)
+);
+CREATE TABLE `biz_purchase_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `purchase_id` bigint NOT NULL,
+  `material_name` varchar(100) DEFAULT NULL,
+  `spec` varchar(50) DEFAULT NULL,
+  `quantity` decimal(10,2) DEFAULT '0.00',
+  `unit` varchar(20) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT '0.00',
+  `amount` decimal(12,2) DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  KEY `idx_pi_purchase` (`purchase_id`)
+);
+CREATE TABLE `biz_qc_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `qc_id` bigint NOT NULL,
+  `field_name` varchar(50) NOT NULL,
+  `field_label` varchar(50) DEFAULT NULL,
+  `old_value` text,
+  `new_value` text,
+  `operator` varchar(50) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_qc_id` (`qc_id`)
+);
+CREATE TABLE `biz_qc_record` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `batch_id` bigint NOT NULL,
+  `qc_items` varchar(255) DEFAULT NULL,
+  `qc_result` tinyint DEFAULT '1',
+  `qc_value` varchar(255) DEFAULT NULL,
+  `inspector` varchar(50) DEFAULT NULL,
+  `qc_date` datetime DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_qc_batch` (`batch_id`)
+);
+CREATE TABLE `biz_queen` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `queen_code` varchar(50) NOT NULL,
+  `hive_id` bigint DEFAULT NULL,
+  `breed` varchar(50) DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_queen_code` (`queen_code`)
+);
+CREATE TABLE `biz_scan_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `trace_code` varchar(40) NOT NULL,
+  `scan_time` datetime NOT NULL,
+  `ip` varchar(50) DEFAULT NULL,
+  `device_type` varchar(20) DEFAULT NULL,
+  `user_agent` varchar(500) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_scanlog_code` (`trace_code`),
+  KEY `idx_scanlog_time` (`scan_time`)
+);
+CREATE TABLE `biz_stock_record` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` bigint DEFAULT NULL,
+  `warehouse_id` bigint DEFAULT NULL,
+  `batch_id` bigint DEFAULT NULL,
+  `biz_type` tinyint NOT NULL,
+  `quantity` decimal(10,2) DEFAULT '0.00',
+  `stock_after` decimal(10,2) DEFAULT NULL,
+  `operator` varchar(50) DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_supplier` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `supplier_name` varchar(100) NOT NULL,
+  `supplier_type` varchar(20) DEFAULT NULL,
+  `contact` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_trace_code` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `trace_code` varchar(40) NOT NULL,
+  `product_batch_id` bigint NOT NULL,
+  `qr_url` varchar(255) DEFAULT NULL,
+  `scan_count` int DEFAULT '0',
+  `last_scan_time` datetime DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_trace_code` (`trace_code`),
+  KEY `idx_trace_batch` (`product_batch_id`)
+);
+CREATE TABLE `biz_warehouse` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `wh_name` varchar(100) NOT NULL,
+  `wh_type` varchar(20) DEFAULT NULL,
+  `location` varchar(200) DEFAULT NULL,
+  `manager` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `biz_warning` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `warning_type` varchar(20) DEFAULT NULL,
+  `biz_id` bigint DEFAULT NULL,
+  `content` varchar(255) DEFAULT NULL,
+  `level` tinyint DEFAULT '1',
+  `status` tinyint DEFAULT '0',
+  `generate_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `handle_by` varchar(50) DEFAULT NULL,
+  `handle_time` datetime DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_warning_status` (`status`),
+  KEY `idx_warning_type` (`warning_type`)
+);
+CREATE TABLE `sys_dept` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint DEFAULT '0',
+  `ancestors` varchar(200) DEFAULT '',
+  `dept_name` varchar(50) NOT NULL,
+  `order_num` int DEFAULT '0',
+  `leader` varchar(20) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `sys_dict_data` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `dict_type` varchar(100) NOT NULL,
+  `dict_label` varchar(50) NOT NULL,
+  `dict_value` varchar(50) NOT NULL,
+  `css_class` varchar(100) DEFAULT NULL,
+  `order_num` int DEFAULT '0',
+  `status` tinyint DEFAULT '1',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `sys_dict_type` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `dict_name` varchar(50) NOT NULL,
+  `dict_type` varchar(100) NOT NULL,
+  `status` tinyint DEFAULT '1',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_dict_type` (`dict_type`)
+);
+CREATE TABLE `sys_login_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) DEFAULT NULL,
+  `ip` varchar(50) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `msg` varchar(255) DEFAULT NULL,
+  `login_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `sys_menu` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint DEFAULT '0',
+  `menu_name` varchar(50) NOT NULL,
+  `menu_type` char(1) DEFAULT 'M',
+  `perms` varchar(100) DEFAULT NULL,
+  `path` varchar(200) DEFAULT NULL,
+  `component` varchar(255) DEFAULT NULL,
+  `icon` varchar(100) DEFAULT NULL,
+  `order_num` int DEFAULT '0',
+  `visible` tinyint DEFAULT '1',
+  `status` tinyint DEFAULT '1',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `sys_oper_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(50) DEFAULT NULL,
+  `method` varchar(10) DEFAULT NULL,
+  `oper_url` varchar(255) DEFAULT NULL,
+  `oper_name` varchar(50) DEFAULT NULL,
+  `oper_param` text,
+  `ip` varchar(50) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `error_msg` text,
+  `oper_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE `sys_role` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `role_name` varchar(50) NOT NULL,
+  `role_code` varchar(50) NOT NULL,
+  `data_scope` tinyint DEFAULT '1',
+  `order_num` int DEFAULT '0',
+  `status` tinyint DEFAULT '1',
+  `create_by` varchar(64) DEFAULT NULL,
+  `update_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_code` (`role_code`)
+);
+CREATE TABLE `sys_role_menu` (
+  `role_id` bigint NOT NULL,
+  `menu_id` bigint NOT NULL,
+  PRIMARY KEY (`role_id`,`menu_id`)
+);
+CREATE TABLE `sys_user` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `dept_id` bigint DEFAULT NULL,
+  `username` varchar(50) NOT NULL,
+  `auth_version` int NOT NULL DEFAULT 0,
+  `password` varchar(100) NOT NULL,
+  `real_name` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(50) DEFAULT NULL,
+  `gender` tinyint DEFAULT '0',
+  `avatar` varchar(255) DEFAULT NULL,
+  `status` tinyint DEFAULT '1',
+  `login_ip` varchar(50) DEFAULT NULL,
+  `login_date` datetime DEFAULT NULL,
+  `create_by` varchar(64) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_by` varchar(64) DEFAULT NULL,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`)
+);
+CREATE TABLE `sys_user_role` (
+  `user_id` bigint NOT NULL,
+  `role_id` bigint NOT NULL,
+  PRIMARY KEY (`user_id`,`role_id`)
+);
+CREATE TABLE sys_business_lock(id INT PRIMARY KEY); INSERT INTO sys_business_lock VALUES(1);

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.finance.mapper.ExpenseMapper">
+
+    <resultMap id="expenseMap" type="com.beefarm.finance.entity.Expense">
+        <id property="id" column="id"/>
+        <result property="apiaryId" column="apiary_id"/>
+        <result property="apiaryName" column="apiary_name"/>
+        <result property="expenseDate" column="expense_date"/>
+        <result property="expenseType" column="expense_type"/>
+        <result property="amount" column="amount"/>
+        <result property="summary" column="summary"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectExpensePage" resultMap="expenseMap">
+        SELECT e.*, a.apiary_name
+        FROM biz_expense e
+                 LEFT JOIN biz_apiary a ON a.id = e.apiary_id AND a.deleted = 0
+        WHERE e.deleted = 0
+        <if test="expense.expenseType != null and expense.expenseType != ''">
+            AND e.expense_type = #{expense.expenseType}
+        </if>
+        <if test="expense.apiaryId != null">
+            AND e.apiary_id = #{expense.apiaryId}
+        </if>
+        <if test="beginTime != null">
+            AND e.expense_date &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND e.expense_date &lt;= #{endTime}
+        </if>
+        ORDER BY e.expense_date DESC, e.id DESC
+    </select>
+</mapper>

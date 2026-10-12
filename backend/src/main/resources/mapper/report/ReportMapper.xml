@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.report.mapper.ReportMapper">
+
+    <!-- 看板核心指标：monthStart/end 为当月月初与下月月初（左闭右开） -->
+    <select id="selectDashboardStats" resultType="java.util.Map">
+        SELECT
+            (SELECT COUNT(*) FROM biz_hive WHERE deleted = 0)                                                AS hiveTotal,
+            (SELECT COUNT(*) FROM biz_hive WHERE deleted = 0 AND status = 1)                                AS activeHive,
+            (SELECT COALESCE(SUM(weight), 0) FROM biz_harvest
+                WHERE deleted = 0 AND harvest_date &gt;= #{monthStart} AND harvest_date &lt; #{monthEnd})       AS monthHarvestWeight,
+            (SELECT COALESCE(SUM(ABS(quantity)), 0) FROM biz_stock_record
+                WHERE biz_type = 2 AND create_time &gt;= #{monthStart} AND create_time &lt; #{monthEnd}) AS monthOutboundBottles,
+            (SELECT COUNT(*) FROM biz_warning WHERE deleted = 0 AND status = 0)                             AS warnCount,
+            ((SELECT COUNT(*) FROM biz_outbound WHERE deleted = 0 AND status = 0)
+             + (SELECT COUNT(*) FROM biz_purchase WHERE deleted = 0 AND status = 0)
+             + (SELECT COUNT(*) FROM biz_product_batch WHERE deleted = 0 AND qc_status = 0))                AS todoCount,
+            (SELECT COUNT(*) FROM biz_scan_log WHERE deleted = 0)                                            AS scanTotal,
+            (SELECT COALESCE(SUM(weight), 0) FROM biz_harvest WHERE deleted = 0)                            AS totalWeight,
+            (SELECT COALESCE(SUM(bottle_count), 0) FROM biz_product_batch WHERE deleted = 0)                 AS totalBottles,
+            (SELECT COUNT(*) FROM biz_outbound WHERE deleted = 0 AND status = 1)                            AS outboundTotal,
+            (SELECT COUNT(*) FROM biz_product_batch WHERE deleted = 0)                                      AS productTotal,
+            (SELECT COUNT(*) FROM biz_harvest WHERE deleted = 0)                                             AS harvestTotal
+    </select>
+
+    <select id="selectHarvestTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(hs.harvest_date, '%Y-%m') AS month,
+               COALESCE(SUM(hs.weight), 0) AS weight
+        FROM biz_harvest hs
+        WHERE hs.deleted = 0
+          AND hs.harvest_date &gt;= #{begin} AND hs.harvest_date &lt; #{end}
+        GROUP BY DATE_FORMAT(hs.harvest_date, '%Y-%m')
+    </select>
+
+    <select id="selectHoneyPie" resultType="java.util.Map">
+        SELECT IFNULL(hs.honey_type, '其他') AS name,
+               COALESCE(SUM(hs.weight), 0) AS value
+        FROM biz_harvest hs
+        WHERE hs.deleted = 0
+        GROUP BY IFNULL(hs.honey_type, '其他')
+        ORDER BY value DESC
+    </select>
+
+    <select id="selectHiveStatus" resultType="java.util.Map">
+        SELECT h.status AS status, COUNT(*) AS value
+        FROM biz_hive h
+        WHERE h.deleted = 0
+        GROUP BY h.status
+    </select>
+
+    <select id="selectOutputTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(o.outbound_date, '%Y-%m') AS month,
+               COALESCE(SUM(o.total_qty), 0) AS qty,
+               COALESCE(SUM(o.total_amount), 0) AS amount
+        FROM biz_outbound o
+        WHERE o.deleted = 0 AND o.status = 1
+          AND o.outbound_date &gt;= #{begin} AND o.outbound_date &lt; #{end}
+        GROUP BY DATE_FORMAT(o.outbound_date, '%Y-%m')
+    </select>
+
+    <select id="selectScanTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(sl.scan_time, '%Y-%m-%d') AS date,
+               COUNT(*) AS count
+        FROM biz_scan_log sl
+        WHERE sl.deleted = 0
+          AND sl.scan_time &gt;= #{begin}
+        GROUP BY DATE_FORMAT(sl.scan_time, '%Y-%m-%d')
+    </select>
+
+    <select id="selectWarnTop" resultType="java.util.Map">
+        SELECT i.item_name AS itemName,
+               i.spec AS spec,
+               i.stock AS stock,
+               i.warn_stock AS warnStock
+        FROM biz_inventory i
+        WHERE i.deleted = 0
+          AND i.warn_stock IS NOT NULL
+          AND i.stock &lt;= i.warn_stock
+        ORDER BY (i.warn_stock - i.stock) ASC
+        LIMIT 10
+    </select>
+
+    <!-- 产量报表 -->
+    <select id="selectProductionReport" resultType="java.util.Map">
+        <choose>
+            <when test="dim == 'hive'">
+                SELECT IFNULL(h.hive_code, '未知蜂箱') AS dim,
+                       COALESCE(SUM(hs.weight), 0) AS weight,
+                       COUNT(*) AS batches
+                FROM biz_harvest hs
+                LEFT JOIN biz_hive h ON h.id = hs.hive_id AND h.deleted = 0
+                WHERE hs.deleted = 0
+                <if test="begin != null">AND hs.harvest_date &gt;= #{begin}</if>
+                <if test="end != null">AND hs.harvest_date &lt;= #{end}</if>
+                GROUP BY IFNULL(h.hive_code, '未知蜂箱')
+            </when>
+            <when test="dim == 'source'">
+                SELECT IFNULL(s.source_name, '未知蜜源') AS dim,
+                       COALESCE(SUM(hs.weight), 0) AS weight,
+                       COUNT(*) AS batches
+                FROM biz_harvest hs
+                LEFT JOIN biz_nectar_source s ON s.id = hs.source_id AND s.deleted = 0
+                WHERE hs.deleted = 0
+                <if test="begin != null">AND hs.harvest_date &gt;= #{begin}</if>
+                <if test="end != null">AND hs.harvest_date &lt;= #{end}</if>
+                GROUP BY IFNULL(s.source_name, '未知蜜源')
+            </when>
+            <otherwise>
+                SELECT DATE_FORMAT(hs.harvest_date, '%Y-%m') AS dim,
+                       COALESCE(SUM(hs.weight), 0) AS weight,
+                       COUNT(*) AS batches
+                FROM biz_harvest hs
+                WHERE hs.deleted = 0
+                <if test="begin != null">AND hs.harvest_date &gt;= #{begin}</if>
+                <if test="end != null">AND hs.harvest_date &lt;= #{end}</if>
+                GROUP BY DATE_FORMAT(hs.harvest_date, '%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY dim
+    </select>
+
+    <!-- 销售报表（仅已审核出库） -->
+    <select id="selectSalesReport" resultType="java.util.Map">
+        <choose>
+            <when test="dim == 'customer'">
+                SELECT IFNULL(c.customer_name, '散客') AS dim,
+                       COALESCE(SUM(o.total_qty), 0) AS qty,
+                       COALESCE(SUM(o.total_amount), 0) AS amount
+                FROM biz_outbound o
+                LEFT JOIN biz_customer c ON c.id = o.customer_id AND c.deleted = 0
+                WHERE o.deleted = 0 AND o.status = 1
+                <if test="begin != null">AND o.outbound_date &gt;= #{begin}</if>
+                <if test="end != null">AND o.outbound_date &lt;= #{end}</if>
+                GROUP BY IFNULL(c.customer_name, '散客')
+            </when>
+            <when test="dim == 'product'">
+                SELECT IFNULL(p.product_name, '其他产品') AS dim,
+                       COALESCE(SUM(oi.quantity), 0) AS qty,
+                       COALESCE(SUM(oi.quantity * oi.price), 0) AS amount
+                FROM biz_outbound_item oi
+                JOIN biz_outbound o ON o.id = oi.outbound_id AND o.deleted = 0 AND o.status = 1
+                LEFT JOIN biz_product_batch p ON p.id = oi.product_batch_id AND p.deleted = 0
+                WHERE 1 = 1
+                <if test="begin != null">AND o.outbound_date &gt;= #{begin}</if>
+                <if test="end != null">AND o.outbound_date &lt;= #{end}</if>
+                GROUP BY IFNULL(p.product_name, '其他产品')
+            </when>
+            <otherwise>
+                SELECT DATE_FORMAT(o.outbound_date, '%Y-%m') AS dim,
+                       COALESCE(SUM(o.total_qty), 0) AS qty,
+                       COALESCE(SUM(o.total_amount), 0) AS amount
+                FROM biz_outbound o
+                WHERE o.deleted = 0 AND o.status = 1
+                <if test="begin != null">AND o.outbound_date &gt;= #{begin}</if>
+                <if test="end != null">AND o.outbound_date &lt;= #{end}</if>
+                GROUP BY DATE_FORMAT(o.outbound_date, '%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY dim
+    </select>
+
+    <!-- 库存报表：库存表无成本价字段，amount 暂以库存数量口径输出 -->
+    <select id="selectInventoryReport" resultType="java.util.Map">
+        SELECT IFNULL(w.wh_name, '未分配仓库') AS warehouse,
+               i.item_name AS itemName,
+               i.spec AS spec,
+               i.stock AS stock,
+               i.stock AS amount
+        FROM biz_inventory i
+        LEFT JOIN biz_warehouse w ON w.id = i.warehouse_id AND w.deleted = 0
+        WHERE i.deleted = 0
+        ORDER BY w.id, i.id
+    </select>
+
+    <select id="selectCostByType" resultType="java.util.Map">
+        SELECT IFNULL(e.expense_type, '其他') AS type,
+               COALESCE(SUM(e.amount), 0) AS amount
+        FROM biz_expense e
+        WHERE e.deleted = 0
+        <if test="begin != null">AND e.expense_date &gt;= #{begin}</if>
+        <if test="end != null">AND e.expense_date &lt;= #{end}</if>
+        GROUP BY IFNULL(e.expense_type, '其他')
+    </select>
+
+    <select id="selectOutputByMonth" resultType="java.util.Map">
+        SELECT DATE_FORMAT(o.outbound_date, '%Y-%m') AS month,
+               COALESCE(SUM(o.total_amount), 0) AS amount
+        FROM biz_outbound o
+        WHERE o.deleted = 0 AND o.status = 1
+        <if test="begin != null">AND o.outbound_date &gt;= #{begin}</if>
+        <if test="end != null">AND o.outbound_date &lt;= #{end}</if>
+        GROUP BY DATE_FORMAT(o.outbound_date, '%Y-%m')
+        ORDER BY month
+    </select>
+
+    <select id="selectProfitSummary" resultType="java.util.Map">
+        SELECT
+            (SELECT COALESCE(SUM(e.amount), 0) FROM biz_expense e
+                WHERE e.deleted = 0
+                <if test="begin != null">AND e.expense_date &gt;= #{begin}</if>
+                <if test="end != null">AND e.expense_date &lt;= #{end}</if>
+            ) AS totalCost,
+            (SELECT COALESCE(SUM(o.total_amount), 0) FROM biz_outbound o
+                WHERE o.deleted = 0 AND o.status = 1
+                <if test="begin != null">AND o.outbound_date &gt;= #{begin}</if>
+                <if test="end != null">AND o.outbound_date &lt;= #{end}</if>
+            ) AS totalOutput
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beefarm.disease.mapper.DiseaseMapper">
+
+    <resultMap id="diseaseMap" type="com.beefarm.disease.entity.Disease">
+        <id property="id" column="id"/>
+        <result property="hiveId" column="hive_id"/>
+        <result property="hiveCode" column="hive_code"/>
+        <result property="diseaseType" column="disease_type"/>
+        <result property="diseaseDate" column="disease_date"/>
+        <result property="level" column="level"/>
+        <result property="handleStatus" column="handle_status"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectDiseasePage" resultMap="diseaseMap">
+        SELECT d.*, h.hive_code
+        FROM biz_disease d
+                 LEFT JOIN biz_hive h ON h.id = d.hive_id AND h.deleted = 0
+        WHERE d.deleted = 0
+        <if test="disease.hiveId != null">
+            AND d.hive_id = #{disease.hiveId}
+        </if>
+        <if test="disease.diseaseType != null and disease.diseaseType != ''">
+            AND d.disease_type = #{disease.diseaseType}
+        </if>
+        <if test="disease.handleStatus != null">
+            AND d.handle_status = #{disease.handleStatus}
+        </if>
+        ORDER BY d.disease_date DESC, d.id DESC
+    </select>
+</mapper>
