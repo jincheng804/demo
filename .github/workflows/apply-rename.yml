@@ -1,0 +1,59 @@
+name: apply-rename
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-rename.yml'
+permissions:
+  contents: write
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply rename and tag
+        run: |
+          set -e
+          git config user.name "jincheng804"
+          git config user.email "2897737167@qq.com"
+          python3 - <<'PY'
+          import pathlib
+          def sub(path, pairs, crlf=False):
+              p = pathlib.Path(path); b = p.read_bytes()
+              for a, c in pairs:
+                  if a.encode() not in b:
+                      raise SystemExit('MISS in %s: %s' % (path, a))
+                  b = b.replace(a.encode(), c.encode())
+              p.write_bytes(b)
+          sub('frontend/index.html', [
+              ('<title>蜂场养殖与蜂蜜溯源管理系统</title>', '<title>蜂场养殖与蜂蜜产销管理系统</title>')])
+          sub('frontend/src/views/login/index.vue', [
+              ('蜂场养殖与蜂蜜溯源管理系统<br />', '蜂场养殖与蜂蜜产销管理系统<br />'),
+              ('© 2026 蜂场养殖与蜂蜜溯源管理系统', '© 2026 蜂场养殖与蜂蜜产销管理系统'),
+              ('alt="蜂场溯源系统"', 'alt="蜂场产销系统"')])
+          sub('frontend/src/views/trace/public.vue', [
+              ('<span>蜂场养殖与蜂蜜溯源</span>', '<span>蜂场养殖与蜂蜜产销</span>'),
+              ('本页面信息由蜂场养殖与蜂蜜溯源管理系统生成', '本页面信息由蜂场养殖与蜂蜜产销管理系统生成')])
+          sub('frontend/src/layout/index.vue', [
+              ('<span>蜂场溯源系统</span>', '<span class="logo-title">蜂场养殖与蜂蜜产销管理系统</span>'),
+              ('aria-label="蜂场溯源系统首页"', 'aria-label="蜂场养殖与蜂蜜产销管理系统首页"'),
+              ("'蜂场养殖与蜂蜜溯源'", "'蜂场养殖与蜂蜜产销'"),
+              ('  gap: 12px;\r\n  padding: 0 22px;', '  gap: 9px;\r\n  padding: 0 12px;'),
+              ('  width: 34px;\r\n  height: 34px;', '  width: 30px;\r\n  height: 30px;'),
+              ('  font-size: 17px;\r\n  font-weight: 650;\r\n  letter-spacing: 0.5px;',
+               '  font-size: 13.5px;\r\n  font-weight: 650;\r\n  letter-spacing: 0.2px;\r\n  white-space: nowrap;\r\n}\r\n.logo-title {\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;')])
+          p = pathlib.Path('README.md'); b = p.read_bytes()
+          b = b.replace('# 蜂场养殖与蜂蜜溯源管理系统\r\n'.encode(),
+                       '# 蜂场养殖与蜂蜜产销管理系统\r\n\r\n> 论文题目：基于 Spring Boot 的蜂场养殖与蜂蜜产销管理系统设计与实现。2026-11-05 起系统正式更名为「蜂场养殖与蜂蜜产销管理系统」，浏览器标题、登录页与左侧导航同步更新，功能与权限不变。\r\n'.encode())
+          p.write_bytes(b)
+          print('rename done')
+          PY
+          if [ -z "$(git status --porcelain)" ]; then echo 'NO_CHANGE'; exit 0; fi
+          git add -A
+          git commit -m "Rename system to 蜂场养殖与蜂蜜产销管理系统"
+          TAG="v1.1.0-rename-$(TZ=Asia/Shanghai date '+%Y%m%d-%H%M%S')"
+          git tag -a "$TAG" -m "蜂场养殖与蜂蜜产销管理系统 更名发布 $TAG"
+          git push origin HEAD:main
+          git push origin "$TAG"
+          echo "TAGGED=$TAG"
