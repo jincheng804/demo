@@ -13,10 +13,10 @@
       id="app-sidebar"
       :inert="isMobile && !mobileMenuOpen"
     >
-      <router-link to="/dashboard" class="logo" aria-label="蜂场溯源系统首页">
+      <router-link to="/dashboard" class="logo" aria-label="蜂场养殖与蜂蜜产销管理系统首页">
         <img src="/bee.svg" class="logo-icon" alt="" />
         <div v-show="!menuCollapsed" class="logo-copy">
-          <span>蜂场溯源系统</span><small>BEE FARM · TRACEABILITY</small>
+          <span class="logo-title">蜂场养殖与蜂蜜产销管理系统</span><small>BEE FARM · TRACEABILITY</small>
         </div>
       </router-link>
       <div class="nav-caption" v-show="!menuCollapsed">工作空间</div>
@@ -93,7 +93,7 @@
             <span class="page-eyebrow">{{
               route.path === '/dashboard'
                 ? '蜂场经营概览'
-                : '蜂场养殖与蜂蜜溯源'
+                : '蜂场养殖与蜂蜜产销'
             }}</span>
             <h1>{{ pageTitle }}</h1>
             <p>{{ pageDescription }}</p>
@@ -244,16 +244,16 @@ async function handleCommand(command) {
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 22px;
+  gap: 9px;
+  padding: 0 12px;
   height: 84px;
   min-height: 84px;
   color: #fff;
   text-decoration: none;
 }
 .logo-icon {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 .logo-copy {
@@ -263,9 +263,14 @@ async function handleCommand(command) {
   white-space: nowrap;
 }
 .logo-copy span {
-  font-size: 17px;
+  font-size: 13.5px;
   font-weight: 650;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.logo-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .logo-copy small {
   color: #9db9a5;

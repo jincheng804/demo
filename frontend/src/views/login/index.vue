@@ -5,11 +5,11 @@
       <div class="honeycomb-bg"></div>
       <div class="brand-content">
         <div class="brand-logo">
-          <img src="/bee.svg" alt="蜂场溯源系统" class="brand-logo-img" />
+          <img src="/bee.svg" alt="蜂场产销系统" class="brand-logo-img" />
         </div>
         <h1 class="brand-title">用心养蜂，<br />让好蜜有源可溯。</h1>
         <p class="brand-subtitle">
-          蜂场养殖与蜂蜜溯源管理系统<br /><span
+          蜂场养殖与蜂蜜产销管理系统<br /><span
             >从日常养殖到消费者扫码，记录每一步。</span
           >
         </p>
@@ -34,7 +34,7 @@
           </li>
         </ul>
       </div>
-      <div class="brand-footer">© 2026 蜂场养殖与蜂蜜溯源管理系统</div>
+      <div class="brand-footer">© 2026 蜂场养殖与蜂蜜产销管理系统</div>
     </div>
 
     <!-- 右侧登录表单区 -->
@@ -42,7 +42,7 @@
       <div class="form-wrapper">
         <div class="form-header">
           <div class="form-logo">
-            <img src="/bee.svg" alt="蜂场溯源系统" class="form-logo-img" />
+            <img src="/bee.svg" alt="蜂场产销系统" class="form-logo-img" />
           </div>
           <span class="form-eyebrow">BEE FARM WORKSPACE</span>
           <h2>欢迎回来</h2>

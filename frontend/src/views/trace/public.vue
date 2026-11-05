@@ -2,7 +2,7 @@
   <div class="public-page">
     <div class="trace-box" v-loading="loading">
       <div class="trace-brand">
-        <img src="/bee.svg" alt="" /><span>蜂场养殖与蜂蜜溯源</span>
+        <img src="/bee.svg" alt="" /><span>蜂场养殖与蜂蜜产销</span>
       </div>
       <div class="header" v-if="data">
         <span class="trace-eyebrow">HONEY TRACEABILITY</span>
@@ -158,7 +158,7 @@
       </el-timeline>
 
       <p class="footer-tip" v-if="data">
-        本页面信息由蜂场养殖与蜂蜜溯源管理系统生成，查看次数
+        本页面信息由蜂场养殖与蜂蜜产销管理系统生成，查看次数
         {{ data.scanCount }}
       </p>
     </div>
