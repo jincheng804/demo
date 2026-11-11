@@ -4,6 +4,7 @@ import com.beefarm.breed.entity.Feeding;
 import com.beefarm.breed.service.FeedingService;
 import com.beefarm.common.core.R;
 import com.beefarm.common.core.TableDataInfo;
+import com.beefarm.common.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,9 @@ public class FeedingController {
     @PreAuthorize("@ss.hasPermi('feeding:add')")
     @PostMapping
     public R<Void> add(@RequestBody Feeding feeding) {
+        if (feeding.getOperator() == null || feeding.getOperator().isBlank()) {
+            feeding.setOperator(SecurityUtils.getDisplayName());
+        }
         feedingService.save(feeding);
         return R.ok();
     }

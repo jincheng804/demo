@@ -30,6 +30,12 @@ public class SecurityUtils {
         return getLoginUser().getUsername();
     }
 
+    public static String getDisplayName() {
+        LoginUser user = getLoginUser();
+        String realName = user.getRealName();
+        return realName == null || realName.isBlank() ? user.getUsername() : realName.strip();
+    }
+
     public static boolean isAdmin() {
         LoginUser u = getLoginUser();
         return u.getRoles().contains("admin");

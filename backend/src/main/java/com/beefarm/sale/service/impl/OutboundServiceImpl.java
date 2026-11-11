@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.beefarm.common.exception.BusinessException;
+import com.beefarm.common.utils.SecurityUtils;
 import com.beefarm.produce.entity.ProductBatch;
 import com.beefarm.produce.mapper.ProductBatchMapper;
 import com.beefarm.sale.entity.Outbound;
 import com.beefarm.sale.entity.OutboundItem;
+import com.beefarm.sale.mapper.CustomerMapper;
 import com.beefarm.sale.mapper.OutboundItemMapper;
 import com.beefarm.sale.mapper.OutboundMapper;
 import com.beefarm.sale.service.OutboundService;
@@ -26,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class OutboundServiceImpl extends ServiceImpl<OutboundMapper, Outbound>
     private final com.beefarm.common.service.BusinessGuard businessGuard;
 
     private final OutboundItemMapper itemMapper;
+    private final CustomerMapper customerMapper;
     private final ProductBatchMapper productBatchMapper;
     private final InventoryMapper inventoryMapper;
     private final StockRecordMapper stockRecordMapper;
@@ -103,6 +107,12 @@ public class OutboundServiceImpl extends ServiceImpl<OutboundMapper, Outbound>
         if (o == null) {
             throw new BusinessException("出库单不存在");
         }
+        if (o.getCustomerId() != null) {
+            var customer = customerMapper.selectById(o.getCustomerId());
+            if (customer != null) {
+                o.setCustomerName(customer.getCustomerName());
+            }
+        }
         o.setItems(itemMapper.selectItemsByOutboundId(id));
         return o;
     }
@@ -115,9 +125,9 @@ public class OutboundServiceImpl extends ServiceImpl<OutboundMapper, Outbound>
         if (o == null) {
             throw new BusinessException("出库单不存在");
         }
-        com.beefarm.common.utils.BusinessChecks.require(
-                !java.util.Objects.equals(o.getCreateBy(), com.beefarm.common.utils.SecurityUtils.getUsername()),
-                "不能审核本人创建的出库单，请由其他有审核权限的人员处理");
+        if (Objects.equals(o.getCreateBy(), SecurityUtils.getUsername())) {
+            throw new BusinessException(403, "不能审核本人创建的出库单，请由其他有审核权限的人员处理");
+        }
         if (!Integer.valueOf(0).equals(o.getStatus())) {
             throw new BusinessException("该出库单已处理，请勿重复审核");
         }

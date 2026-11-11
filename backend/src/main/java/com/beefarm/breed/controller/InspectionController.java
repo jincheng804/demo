@@ -4,6 +4,7 @@ import com.beefarm.breed.entity.Inspection;
 import com.beefarm.breed.service.InspectionService;
 import com.beefarm.common.core.R;
 import com.beefarm.common.core.TableDataInfo;
+import com.beefarm.common.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,9 @@ public class InspectionController {
     @PreAuthorize("@ss.hasPermi('inspection:add')")
     @PostMapping
     public R<Void> add(@RequestBody Inspection inspection) {
+        if (inspection.getInspector() == null || inspection.getInspector().isBlank()) {
+            inspection.setInspector(SecurityUtils.getDisplayName());
+        }
         inspectionService.save(inspection);
         return R.ok();
     }

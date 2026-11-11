@@ -47,6 +47,7 @@ public class TraceServiceImpl extends ServiceImpl<TraceCodeMapper, TraceCode>
     private final MedicationMapper medicationMapper;
     private final QcRecordMapper qcRecordMapper;
     private final ScanLogMapper scanLogMapper;
+    private final TraceClientIpResolver clientIpResolver;
     private final com.beefarm.common.service.BusinessGuard businessGuard;
 
     @Value("${bee.trace.base-url}")
@@ -157,17 +158,11 @@ public class TraceServiceImpl extends ServiceImpl<TraceCodeMapper, TraceCode>
         ScanLog scanLog = new ScanLog();
         scanLog.setTraceCode(traceCode);
         scanLog.setScanTime(LocalDateTime.now());
-        scanLog.setIp(resolveClientIp(request));
+        scanLog.setIp(clientIpResolver.resolve(request));
         String ua = request.getHeader("User-Agent");
         scanLog.setUserAgent(ua == null ? null : ua.substring(0, Math.min(255, ua.length())));
         scanLog.setDeviceType(inferDeviceType(ua));
         scanLogMapper.insert(scanLog);
-    }
-
-    /** 提取客户端真实IP(反向代理优先) */
-    private String resolveClientIp(HttpServletRequest request) {
-        // Only trust the connection address; arbitrary client forwarding headers can be forged.
-        return request.getRemoteAddr();
     }
 
     /** 根据UA推断设备类型 */

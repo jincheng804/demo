@@ -104,9 +104,7 @@
               :value="h.id"
             />
           </el-select>
-          <div v-if="bottledCount > 0" class="harvest-tip">
-            另有 {{ bottledCount }} 个采收批次已装瓶，不在下拉列表中显示
-          </div>
+          <div class="harvest-tip">仅显示待装瓶的采收批次</div>
         </el-form-item>
         <el-form-item label="产品名称">
           <el-input v-model="form.productName" placeholder="留空则取蜂蜜种类" />
@@ -232,10 +230,6 @@ const selectedHarvest = computed(() =>
 // 待装瓶的采收批次（过滤已装瓶 status=2）
 const availableHarvests = computed(() =>
   harvests.value.filter((h) => h.status !== 2)
-)
-// 已装瓶的采收批次数量
-const bottledCount = computed(
-  () => harvests.value.filter((h) => h.status === 2).length
 )
 // 最大可装瓶数 = floor(重量kg * 1000 / 规格g)
 const maxBottles = computed(() => {

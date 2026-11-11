@@ -41,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "spring.datasource.driver-class-name=org.h2.Driver", "spring.datasource.username=sa", "spring.datasource.password=",
     "spring.sql.init.mode=always", "spring.sql.init.schema-locations=classpath:schema-review.sql",
     "bee.jwt.secret=review-test-only-secret-0123456789-abcdefghijklmnopqrstuvwxyz-0123456789",
+    "bee.trace.trust-loopback-proxy=true",
     "logging.level.com.beefarm=ERROR"
 })
 @AutoConfigureMockMvc
@@ -65,7 +66,7 @@ class ReviewIntegrationTest {
     @BeforeEach void prepare() {
         for (String table : List.of("biz_outbound_item","biz_outbound","biz_stock_record","biz_inventory","biz_trace_code","biz_scan_log",
                 "biz_qc_log","biz_qc_record","biz_product_batch","biz_harvest","biz_medication","biz_purchase_item","biz_purchase","biz_warehouse",
-                "sys_user_role","sys_role_menu","sys_menu","sys_user","sys_role")) db.update("DELETE FROM " + table);
+                "biz_customer","biz_inspection","biz_feeding","sys_user_role","sys_role_menu","sys_menu","sys_user","sys_role")) db.update("DELETE FROM " + table);
         db.update("INSERT INTO biz_warehouse(id,wh_name,wh_type,status,deleted) VALUES(1,'原料仓','原料库',1,0),(2,'成品仓','成品库',1,0)");
         db.update("INSERT INTO sys_role(id,role_name,role_code,status) VALUES(1,'管理员','admin',1),(2,'销售员','sales',1)");
         String password = passwords.encode("test1234");
@@ -102,8 +103,54 @@ class ReviewIntegrationTest {
     @Test void creatorIsNotClientControlledAndSelfApprovalIsDenied() {
         seedProduct(10);login("sales");var order=order(2);order.setCreateBy("admin");outbound.createOutbound(order);
         assertEquals("sales",outbound.getById(order.getId()).getCreateBy());
-        assertThrows(BusinessException.class,()->outbound.audit(order.getId()));
+        var error = assertThrows(BusinessException.class, () -> outbound.audit(order.getId()));
+        assertEquals(403, error.getCode());
+        assertEquals(0, outbound.getById(order.getId()).getStatus());
         assertEquals(10,db.queryForObject("SELECT stock FROM biz_inventory WHERE id=1",Integer.class));
+        assertEquals(0, db.queryForObject("SELECT COUNT(*) FROM biz_stock_record WHERE biz_type=2", Integer.class));
+    }
+
+    @Test void outboundDetailIncludesCustomerAndRetainsItemsWhenCustomerIsDeleted() throws Exception {
+        seedProduct(10);
+        db.update("INSERT INTO biz_customer(id,customer_name,deleted) VALUES(1,'测试客户',0)");
+        var order = order(2);
+        outbound.createOutbound(order);
+        String authorization = "Bearer " + token("admin");
+        mvc.perform(get("/outbound/{id}", order.getId()).header("Authorization", authorization))
+                .andExpect(jsonPath("$.data.customerName").value("测试客户"))
+                .andExpect(jsonPath("$.data.items[0].quantity").value(2));
+        db.update("UPDATE biz_customer SET deleted=1 WHERE id=1");
+        mvc.perform(get("/outbound/{id}", order.getId()).header("Authorization", authorization))
+                .andExpect(jsonPath("$.data.customerName").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].quantity").value(2));
+    }
+
+    @Test void inspectionAndFeedingDefaultBlankOperatorsButKeepExplicitNames() throws Exception {
+        db.update("UPDATE sys_user SET real_name='管理员姓名' WHERE username='admin'");
+        SecurityContextHolder.clearContext();
+        String authorization = "Bearer " + token("admin");
+        mvc.perform(post("/inspection").header("Authorization", authorization).contentType("application/json")
+                        .content("""
+                                {"hiveId":1,"inspectDate":"2026-10-01","inspector":" "}
+                                """))
+                .andExpect(jsonPath("$.code").value(200));
+        mvc.perform(post("/feeding").header("Authorization", authorization).contentType("application/json")
+                        .content("""
+                                {"hiveId":1,"feedDate":"2026-10-01","operator":"代录作业人"}
+                                """))
+                .andExpect(jsonPath("$.code").value(200));
+        assertEquals("管理员姓名", db.queryForObject("SELECT inspector FROM biz_inspection", String.class));
+        assertEquals("代录作业人", db.queryForObject("SELECT operator FROM biz_feeding", String.class));
+        assertEquals("admin", db.queryForObject("SELECT create_by FROM biz_feeding", String.class));
+
+        db.update("UPDATE sys_user SET real_name=NULL WHERE username='admin'");
+        mvc.perform(post("/feeding").header("Authorization", "Bearer " + token("admin")).contentType("application/json")
+                        .content("""
+                                {"hiveId":1,"feedDate":"2026-10-02"}
+                                """))
+                .andExpect(jsonPath("$.code").value(200));
+        assertEquals("admin", db.queryForObject(
+                "SELECT operator FROM biz_feeding WHERE feed_date='2026-10-02'", String.class));
     }
     @Test void duplicateConcurrentApprovalDeductsOnce() throws Exception {
         seedProduct(10);login("sales");var order=order(3);outbound.createOutbound(order);
@@ -176,10 +223,21 @@ class ReviewIntegrationTest {
     @Test void previewDoesNotCountAndPublicScanCountsExactlyOnce() {
         seedProduct(10);var code=trace.generate(1L);assertEquals(34,code.getTraceCode().length());
         trace.publicTrace(code.getTraceCode(),null);assertEquals(0,db.queryForObject("SELECT scan_count FROM biz_trace_code",Integer.class));
-        var req=new MockHttpServletRequest();req.addHeader("User-Agent","x".repeat(500));req.addHeader("X-Forwarded-For","forged-address");
+        var req = new MockHttpServletRequest();
+        req.setRemoteAddr("192.0.2.10");
+        req.addHeader("User-Agent", "x".repeat(500));
+        req.addHeader("X-Forwarded-For", "203.0.113.66");
         trace.publicTrace(code.getTraceCode(),req);assertEquals(1,db.queryForObject("SELECT scan_count FROM biz_trace_code",Integer.class));
         assertEquals(255,db.queryForObject("SELECT LENGTH(user_agent) FROM biz_scan_log",Integer.class));
-        assertEquals("127.0.0.1",db.queryForObject("SELECT ip FROM biz_scan_log",String.class));
+        assertEquals("192.0.2.10", db.queryForObject("SELECT ip FROM biz_scan_log", String.class));
+
+        var proxied = new MockHttpServletRequest();
+        proxied.setRemoteAddr("127.0.0.1");
+        proxied.addHeader("X-Real-IP", "203.0.113.7");
+        trace.publicTrace(code.getTraceCode(), proxied);
+        assertEquals(2, db.queryForObject("SELECT scan_count FROM biz_trace_code", Integer.class));
+        assertEquals(1, db.queryForObject(
+                "SELECT COUNT(*) FROM biz_scan_log WHERE ip='203.0.113.7'", Integer.class));
     }
     @Test void disabledRoleStopsGrantingPermissions() {
         db.update("INSERT INTO sys_menu(id,menu_name,menu_type,perms,status) VALUES(1,'用户','C','user:list',1)");

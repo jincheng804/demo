@@ -47,6 +47,7 @@ SOURCE D:/your-project/bee-farm-system/sql/data.sql;
 | `BEE_DB_PASSWORD` | 数据库密码 | 无缺省密码，须自行设置 |
 | `BEE_JWT_SECRET` | 登录签名密钥 | 至少 64 字节；未设置会生成临时密钥，重启后须重新登录 |
 | `BEE_TRACE_BASE_URL` | 溯源码指向的前端网址 | http://localhost:5173 |
+| `BEE_TRACE_TRUST_LOOPBACK_PROXY` | 扫码日志采信同机 Nginx 的来源地址 | false。按下方条件配置后可开启 |
 | `BEE_CORS_ORIGINS` | 允许的前端来源，逗号分隔 | http://localhost:5173,http://127.0.0.1:5173 |
 
 正式部署应设置数据库密码、固定的随机 JWT 密钥和实际前端网址。多个后端实例使用同一个 JWT 密钥。不要把实际密钥提交到源码。
@@ -79,6 +80,20 @@ npm run build
 ```
 
 生产环境部署 `frontend/dist`，网站根路径使用 history 路由回退到 `index.html`，并将 `/api` 请求反向代理到后端。溯源二维码应配置外部设备可访问的真实域名。
+
+### 同机 Nginx 的扫码来源地址
+
+客户端直接连接 Nginx、后端仅由同机 Nginx 转发时，将以下指令加到现有的 `/api/` 代理配置中：
+
+```nginx
+proxy_pass http://127.0.0.1:8090;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $remote_addr;
+```
+
+确认 Spring Boot 实际监听 `127.0.0.1:8090`，并检查启动参数和环境变量中的监听地址覆盖项。验证 Nginx 配置后重载，再设置 `BEE_TRACE_TRUST_LOOPBACK_PROXY=true` 并重启后端。后端仅对 TCP 对端 `127.0.0.1` 采信这些头，优先取合法的 `X-Real-IP`。兼容使用 `$proxy_add_x_forwarded_for` 的现有配置时，只取追加在末尾的地址。
+
+验收时用外网设备访问测试溯源码，对照 Nginx 日志和新扫码记录，再附带伪造转发头请求一次，确认记录仍以 Nginx 看到的地址为准。已有扫码记录保留原值。若接入 CDN 或其他代理，先按实际拓扑重新配置 Nginx 的来源地址信任规则。
 
 ## 五、演示账号
 

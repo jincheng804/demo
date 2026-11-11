@@ -316,7 +316,7 @@
           <span
             >单号：<b>{{ detailInfo.outboundNo }}</b></span
           >
-          <span>客户：{{ detailInfo.customerName }}</span>
+          <span>客户：{{ detailInfo.customerName || '—' }}</span>
           <span
             >合计：<b style="color: #f56c6c"
               >¥{{ Number(detailInfo.totalAmount || 0).toFixed(2) }}</b

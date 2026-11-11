@@ -1,6 +1,7 @@
 server:
   port: ${BEE_SERVER_PORT:8090}
   address: ${BEE_SERVER_ADDRESS:127.0.0.1}
+  forward-headers-strategy: none
   servlet:
     context-path: /api
 
@@ -42,6 +43,7 @@ bee:
   # 溯源公开页基础地址(前端域名)
   trace:
     base-url: ${BEE_TRACE_BASE_URL:http://localhost:5173}
+    trust-loopback-proxy: ${BEE_TRACE_TRUST_LOOPBACK_PROXY:false}
 
 springdoc:
   swagger-ui:
